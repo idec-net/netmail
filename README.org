@@ -67,3 +67,52 @@ Vasya                                          # Имя пользователя
 *** TODO Формат node2node API
 
 *** TODO Формат client API
+
+Т.к. мы используем теги, то API отправки сообщения можно не менять, но поменять конечный эндпоинт,
+вынеся его в расширения протокола.
+
+Т.е.:
+#+begin_src sh
+curl -XPOST -d 'pauth=authstring' -d 'tmsg=BASE64' http://node.domain.tld/x/m/point
+# Либо
+curl -XGET http://node.domain.tld/x/m/point/authstring/BASE64
+#+end_src
+
+А для получения сообщений адресованных вам делаем запрос вида
+#+begin_src sh
+curl -XGET http://node.domain.tld/x/m/mail/authstring
+# Либо
+curl -XPOST -d 'pauth=authstring' http://node.domain.tld/x/m/
+# Получение сообщений со сдвигом
+curl -XPOST -d 'pauth=authstring' http://node.domain.tld/x/m/-10:10
+#+end_src
+
+Т.к. нода по authstring может узнать информацию о поинте, то она должна знать о том
+какие сообщения адресованные этому поинту есть на этой ноде и возвращает их.
+
+Так, ответ от ноды предлагается сделать аналогичным ~/u/e~:
+#+begin_src sh
+curl -XPOST -d 'pauth=authstring' http://node.domain.tld/x/m/-1:1
+HTTP/1.1 200 Ok
+Content-Type: text/plain
+dynamic,1
+IZXhLBKJx0rhx0lXYu3L
+#+end_src
+
+Получаем это сообщение
+#+begin_src sh
+curl -XPOST -d 'pauth=authstring' http://node.domain.tld/x/m/IZXhLBKJx0rhx0lXYu3L
+HTTP/1.1 200 Ok
+Content-Type: text/plain
+IZXhLBKJx0rhx0lXYu3L:BASE64
+#+end_src
+
+Либо несколько сообщений, по аналогии с существующей схемой ~/u/e~
+#+begin_src sh
+curl -XPOST -d 'pauth=authstring' http://node.domain.tld/x/m/IZXhLBKJx0rhx0lXYu3L/IZahLHKJ10rZx0ZXAAA0/...
+HTTP/1.1 200 Ok
+Content-Type: text/plain
+IZXhLBKJx0rhx0lXYu3L:BASE64
+IZahLHKJ10rZx0ZXAAA0:BASE64
+...:BASE64
+#+end_src
